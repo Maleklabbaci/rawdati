@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { EstablishmentProvider } from './context/EstablishmentContext'
+import { ToastProvider } from './context/ToastContext'
 import { Login } from './pages/Login'
 import { Sidebar } from './components/Sidebar'
 import { Header } from './components/Header'
@@ -72,7 +73,9 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <EstablishmentProvider>
-          <AppContent />
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
         </EstablishmentProvider>
       </LanguageProvider>
     </AuthProvider>
