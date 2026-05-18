@@ -1,6 +1,6 @@
 import { 
   LayoutDashboard, Users, UserCheck, Calendar, CreditCard, 
-  BarChart3, LogOut, Moon, Sun, Globe 
+  BarChart3, LogOut, Moon, Sun 
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { LanguageProvider, useLanguage } from './context/LanguageContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { Login } from './pages/Login'
 import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './pages/Dashboard'
@@ -14,7 +14,6 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'children' | 'staff' | 'attendance' | 'payments' | 'reports'>('dashboard')
   const [darkMode, setDarkMode] = useState(false)
   const { user, loading, signOut } = useAuth()
-  const { t } = useLanguage()
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)

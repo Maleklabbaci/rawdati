@@ -17,7 +17,6 @@ export function Attendance() {
   const fetchAttendance = async () => {
     setLoading(true)
     
-    // Get today's date
     const today = new Date().toISOString().split('T')[0]
     
     const { data, error } = await supabase
@@ -44,7 +43,7 @@ export function Attendance() {
     setLoading(false)
   }
 
-  const updateStatus = async (id: string, childId: string, newStatus: 'Present' | 'Absent' | 'Late') => {
+  const updateStatus = async (childId: string, newStatus: 'Present' | 'Absent' | 'Late') => {
     const today = new Date().toISOString().split('T')[0]
 
     const { error } = await supabase
@@ -53,7 +52,7 @@ export function Attendance() {
         child_id: childId,
         date: today,
         status: newStatus,
-        nursery_id: '00000000-0000-0000-0000-000000000000' // placeholder
+        nursery_id: '00000000-0000-0000-0000-000000000000'
       })
 
     if (!error) {
@@ -92,7 +91,7 @@ export function Attendance() {
                   {(['Present', 'Absent', 'Late'] as const).map((status) => (
                     <button
                       key={status}
-                      onClick={() => updateStatus(record.id, record.child_id, status)}
+                      onClick={() => updateStatus(record.child_id, status)}
                       className={`px-4 py-1.5 text-sm rounded-xl transition-all ${
                         record.status === status
                           ? status === 'Present' ? 'bg-green-600 text-white'
