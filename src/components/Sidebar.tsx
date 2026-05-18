@@ -3,6 +3,7 @@ import {
   BarChart3, LogOut, Moon, Sun 
 } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
+import { useEstablishment } from '../context/EstablishmentContext'
 
 interface SidebarProps {
   currentPage: string
@@ -14,12 +15,40 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, setCurrentPage, darkMode, toggleDarkMode, onLogout }: SidebarProps) {
   const { language, setLanguage, t } = useLanguage()
+  const { establishment } = useEstablishment()
+
+  const type = establishment?.type || 'Crèche'
+
+  // Dynamic menu labels
+  const getMenuLabels = (type: string) => {
+    if (type === 'École de langue' || type === 'École de cours') {
+      return {
+        students: 'Étudiants',
+        staff: 'Formateurs',
+        attendance: 'Présence'
+      }
+    } else if (type === 'École de formation') {
+      return {
+        students: 'Apprenants',
+        staff: 'Formateurs',
+        attendance: 'Présence'
+      }
+    } else {
+      return {
+        students: 'Enfants',
+        staff: 'Personnel',
+        attendance: 'Présence'
+      }
+    }
+  }
+
+  const menuLabels = getMenuLabels(type)
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
-    { id: 'children', label: t('children'), icon: Users },
-    { id: 'staff', label: t('staff'), icon: UserCheck },
-    { id: 'attendance', label: t('attendance'), icon: Calendar },
+    { id: 'children', label: menuLabels.students, icon: Users },
+    { id: 'staff', label: menuLabels.staff, icon: UserCheck },
+    { id: 'attendance', label: menuLabels.attendance, icon: Calendar },
     { id: 'payments', label: t('payments'), icon: CreditCard },
     { id: 'reports', label: t('reports'), icon: BarChart3 },
   ]
@@ -33,7 +62,7 @@ export function Sidebar({ currentPage, setCurrentPage, darkMode, toggleDarkMode,
           </div>
           <div>
             <h1 className="font-bold text-xl">RAWDATI</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Gestion Crèche</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Plateforme Éducative</p>
           </div>
         </div>
       </div>

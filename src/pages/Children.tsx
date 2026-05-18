@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Search } from 'lucide-react'
 import { Modal } from '../components/Modal'
 import { supabase } from '../lib/supabase'
+import { useEstablishment } from '../context/EstablishmentContext'
 
 interface Child {
   id: string
@@ -14,6 +15,9 @@ interface Child {
 }
 
 export function Children() {
+  const { establishment } = useEstablishment()
+  const type = establishment?.type || 'Crèche'
+
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [children, setChildren] = useState<Child[]>([])
@@ -22,12 +26,41 @@ export function Children() {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    group_name: 'Petits',
+    group_name: 'Groupe A',
     parent_name: '',
     parent_phone: '',
   })
 
-  // Fetch children from Supabase
+  const getLabels = (type: string) => {
+    if (type === 'École de langue' || type === 'École de cours') {
+      return {
+        title: 'Gestion des Étudiants',
+        addButton: 'Ajouter un étudiant',
+        parentLabel: 'Contact / Parent',
+        groupLabel: 'Niveau / Groupe',
+        countLabel: 'étudiants inscrits'
+      }
+    } else if (type === 'École de formation') {
+      return {
+        title: 'Gestion des Apprenants',
+        addButton: 'Ajouter un apprenant',
+        parentLabel: 'Entreprise / Contact',
+        groupLabel: 'Module / Groupe',
+        countLabel: 'apprenants inscrits'
+      }
+    } else {
+      return {
+        title: 'Gestion des Enfants',
+        addButton: 'Ajouter un enfant',
+        parentLabel: 'Nom du parent',
+        groupLabel: 'Groupe',
+        countLabel: 'enfants inscrits'
+      }
+    }
+  }
+
+  const labels = getLabels(type)
+
   const fetchChildren = async () => {
     setLoading(true)
     const { data, error } = await supabase
@@ -54,10 +87,9 @@ export function Children() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // TODO: Replace with real nursery_id from logged in user later
     const { error } = await supabase.from('children').insert([{
       ...formData,
-      nursery_id: '00000000-0000-0000-0000-000000000000', // placeholder
+      nursery_id: '00000000-0000-0000-0000-000000000000',
       status: 'Active'
     }])
 
@@ -65,9 +97,9 @@ export function Children() {
       alert('Erreur lors de l\'ajout: ' + error.message)
     } else {
       setIsModalOpen(false)
-      fetchChildren() // Refresh list
+      fetchChildren()
       setFormData({
-        first_name: '', last_name: '', group_name: 'Petits',
+        first_name: '', last_name: '', group_name: 'Groupe A',
         parent_name: '', parent_phone: ''
       })
     }
@@ -77,14 +109,14 @@ export function Children() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Gestion des Enfants</h1>
-          <p className="text-gray-500">{children.length} enfants inscrits</p>
+          <h1 className="text-3xl font-bold">{labels.title}</h1>
+          <p className="text-gray-500">{children.length} {labels.countLabel}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700"
+          className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 transition-all shadow-lg"
         >
-          <Plus className="w-4 h-4" /> Ajouter un enfant
+          <Plus className="w-4 h-4" /> {labels.addButton}
         </button>
       </div>
 
@@ -93,43 +125,43 @@ export function Children() {
           <Search className="absolute left-4 top-3.5 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder="Rechercher un enfant..."
+            placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            className="w-full pl-11 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
           />
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <th className="text-left p-4 font-medium">Nom</th>
-              <th className="text-left p-4 font-medium">Groupe</th>
-              <th className="text-left p-4 font-medium">Parent</th>
-              <th className="text-left p-4 font-medium">Téléphone</th>
-              <th className="text-left p-4 font-medium">Statut</th>
+              <th className="text-left p-4 font-semibold">Nom</th>
+              <th className="text-left p-4 font-semibold">{labels.groupLabel}</th>
+              <th className="text-left p-4 font-semibold">{labels.parentLabel}</th>
+              <th className="text-left p-4 font-semibold">Téléphone</th>
+              <th className="text-left p-4 font-semibold">Statut</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={5} className="p-8 text-center">Chargement...</td></tr>
             ) : filteredChildren.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-gray-500">Aucun enfant trouvé</td></tr>
+              <tr><td colSpan={5} className="p-8 text-center text-gray-500">Aucun résultat trouvé</td></tr>
             ) : (
               filteredChildren.map((child) => (
-                <tr key={child.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <tr key={child.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <td className="p-4 font-medium">{child.first_name} {child.last_name}</td>
                   <td className="p-4">
-                    <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full text-sm">
+                    <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full text-sm font-medium">
                       {child.group_name}
                     </span>
                   </td>
                   <td className="p-4 text-gray-600 dark:text-gray-300">{child.parent_name}</td>
                   <td className="p-4 text-gray-600 dark:text-gray-300">{child.parent_phone}</td>
                   <td className="p-4">
-                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded-full text-sm">
+                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded-full text-sm font-medium">
                       {child.status}
                     </span>
                   </td>
@@ -140,42 +172,79 @@ export function Children() {
         </table>
       </div>
 
-      {/* Add Child Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ajouter un enfant">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Modal Amélioré */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={labels.addButton}>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5">Prénom</label>
-              <input type="text" value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="w-full px-4 py-3 rounded-xl border" required />
+              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Prénom</label>
+              <input 
+                type="text" 
+                value={formData.first_name} 
+                onChange={(e) => setFormData({...formData, first_name: e.target.value})} 
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
+                required 
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5">Nom</label>
-              <input type="text" value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="w-full px-4 py-3 rounded-xl border" required />
+              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Nom</label>
+              <input 
+                type="text" 
+                value={formData.last_name} 
+                onChange={(e) => setFormData({...formData, last_name: e.target.value})} 
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
+                required 
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Groupe</label>
-            <select value={formData.group_name} onChange={(e) => setFormData({...formData, group_name: e.target.value})} className="w-full px-4 py-3 rounded-xl border">
-              <option value="Petits">Petits (2-3 ans)</option>
-              <option value="Moyens">Moyens (3-4 ans)</option>
-              <option value="Grands">Grands (4-5 ans)</option>
-            </select>
+            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">{labels.groupLabel}</label>
+            <input 
+              type="text" 
+              value={formData.group_name} 
+              onChange={(e) => setFormData({...formData, group_name: e.target.value})} 
+              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
+              required 
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Nom du parent</label>
-            <input type="text" value={formData.parent_name} onChange={(e) => setFormData({...formData, parent_name: e.target.value})} className="w-full px-4 py-3 rounded-xl border" required />
+            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">{labels.parentLabel}</label>
+            <input 
+              type="text" 
+              value={formData.parent_name} 
+              onChange={(e) => setFormData({...formData, parent_name: e.target.value})} 
+              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
+              required 
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Téléphone du parent</label>
-            <input type="tel" value={formData.parent_phone} onChange={(e) => setFormData({...formData, parent_phone: e.target.value})} className="w-full px-4 py-3 rounded-xl border" required />
+            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Téléphone</label>
+            <input 
+              type="tel" 
+              value={formData.parent_phone} 
+              onChange={(e) => setFormData({...formData, parent_phone: e.target.value})} 
+              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
+              required 
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 rounded-xl border">Annuler</button>
-            <button type="submit" className="flex-1 py-3 rounded-xl bg-teal-600 text-white hover:bg-teal-700">Ajouter l'enfant</button>
+            <button 
+              type="button" 
+              onClick={() => setIsModalOpen(false)} 
+              className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit" 
+              className="flex-1 py-3 rounded-2xl bg-teal-600 text-white hover:bg-teal-700 font-semibold shadow-lg"
+            >
+              Ajouter
+            </button>
           </div>
         </form>
       </Modal>

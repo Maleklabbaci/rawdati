@@ -1,14 +1,53 @@
 import { Users, Calendar, TrendingUp, UserCheck } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { useLanguage } from '../context/LanguageContext'
+import { useEstablishment } from '../context/EstablishmentContext'
 
 export function Dashboard() {
-  const { t } = useLanguage()
+  const { establishment } = useEstablishment()
+
+  const type = establishment?.type || 'Crèche'
+  const name = establishment?.name || 'Votre établissement'
+
+  // Dynamic labels based on type
+  const getLabels = (type: string) => {
+    switch (type) {
+      case 'École de langue':
+        return {
+          students: 'Étudiants inscrits',
+          present: 'Présents aujourd\'hui',
+          staff: 'Formateurs',
+          welcome: 'Bienvenue dans votre école de langue'
+        }
+      case 'École de cours':
+        return {
+          students: 'Élèves inscrits',
+          present: 'Présents aujourd\'hui',
+          staff: 'Professeurs',
+          welcome: 'Bienvenue dans votre école de cours'
+        }
+      case 'École de formation':
+        return {
+          students: 'Apprenants inscrits',
+          present: 'Présents aujourd\'hui',
+          staff: 'Formateurs',
+          welcome: 'Bienvenue dans votre centre de formation'
+        }
+      default: // Crèche
+        return {
+          students: 'Enfants inscrits',
+          present: 'Présents aujourd\'hui',
+          staff: 'Personnel',
+          welcome: 'Bienvenue dans votre crèche'
+        }
+    }
+  }
+
+  const labels = getLabels(type)
 
   const stats = [
-    { label: "Enfants inscrits", value: "87", change: "+5", icon: Users, color: "teal" },
-    { label: "Présents aujourd'hui", value: "72", change: "83%", icon: Calendar, color: "blue" },
-    { label: "Personnel", value: "14", change: "+1", icon: UserCheck, color: "purple" },
+    { label: labels.students, value: "87", change: "+5", icon: Users, color: "teal" },
+    { label: labels.present, value: "72", change: "83%", icon: Calendar, color: "blue" },
+    { label: labels.staff, value: "14", change: "+1", icon: UserCheck, color: "purple" },
     { label: "Taux d'occupation", value: "92%", change: "+4%", icon: TrendingUp, color: "green" },
   ]
 
@@ -23,8 +62,8 @@ export function Dashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">{t('welcome')}, Admin 👋</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Voici un aperçu de votre crèche aujourd'hui</p>
+        <h1 className="text-3xl font-bold">{labels.welcome} 👋</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{name}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

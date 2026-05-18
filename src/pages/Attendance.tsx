@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../context/LanguageContext'
+import { useEstablishment } from '../context/EstablishmentContext'
 
 interface AttendanceRecord {
   id: string
@@ -11,12 +12,26 @@ interface AttendanceRecord {
 
 export function Attendance() {
   const { t } = useLanguage()
+  const { establishment } = useEstablishment()
+  const type = establishment?.type || 'Crèche'
+
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(true)
 
+  const getLabels = (type: string) => {
+    if (type === 'École de langue' || type === 'École de cours') {
+      return { title: 'Suivi des Présences - Étudiants' }
+    } else if (type === 'École de formation') {
+      return { title: 'Suivi des Présences - Apprenants' }
+    } else {
+      return { title: 'Suivi des Présences' }
+    }
+  }
+
+  const labels = getLabels(type)
+
   const fetchAttendance = async () => {
     setLoading(true)
-    
     const today = new Date().toISOString().split('T')[0]
     
     const { data, error } = await supabase
@@ -72,7 +87,7 @@ export function Attendance() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{t('markAttendance')}</h1>
+          <h1 className="text-3xl font-bold">{labels.title}</h1>
           <p className="text-gray-500 mt-1">{new Date().toLocaleDateString('fr-FR')}</p>
         </div>
       </div>
@@ -81,7 +96,7 @@ export function Attendance() {
         {loading ? (
           <div className="p-8 text-center">{t('loading')}</div>
         ) : attendance.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Aucun enfant à afficher</div>
+          <div className="p-8 text-center text-gray-500">Aucun enregistrement</div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {attendance.map((record) => (

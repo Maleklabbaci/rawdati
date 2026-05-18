@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
+import { EstablishmentProvider } from './context/EstablishmentContext'
 import { Login } from './pages/Login'
 import { Sidebar } from './components/Sidebar'
+import { Header } from './components/Header'
 import { Dashboard } from './pages/Dashboard'
 import { Children } from './pages/Children'
 import { Staff } from './pages/Staff'
@@ -51,11 +53,15 @@ function AppContent() {
           onLogout={signOut}
         />
         
-        <main className="flex-1 p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {renderPage()}
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col">
+          <Header />
+          
+          <main className="flex-1 p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {renderPage()}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   )
@@ -65,7 +71,9 @@ function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <AppContent />
+        <EstablishmentProvider>
+          <AppContent />
+        </EstablishmentProvider>
       </LanguageProvider>
     </AuthProvider>
   )
