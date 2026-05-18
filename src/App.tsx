@@ -1,0 +1,75 @@
+import { useState } from 'react'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { LanguageProvider, useLanguage } from './context/LanguageContext'
+import { Login } from './pages/Login'
+import { Sidebar } from './components/Sidebar'
+import { Dashboard } from './pages/Dashboard'
+import { Children } from './pages/Children'
+import { Staff } from './pages/Staff'
+import { Attendance } from './pages/Attendance'
+import { Payments } from './pages/Payments'
+import { Reports } from './pages/Reports'
+
+function AppContent() {
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'children' | 'staff' | 'attendance' | 'payments' | 'reports'>('dashboard')
+  const [darkMode, setDarkMode] = useState(false)
+  const { user, loading, signOut } = useAuth()
+  const { t } = useLanguage()
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode)
+    document.documentElement.classList.toggle('dark')
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+  }
+
+  if (!user) {
+    return <Login />
+  }
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard': return <Dashboard />
+      case 'children': return <Children />
+      case 'staff': return <Staff />
+      case 'attendance': return <Attendance />
+      case 'payments': return <Payments />
+      case 'reports': return <Reports />
+      default: return <Dashboard />
+    }
+  }
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className="flex">
+        <Sidebar 
+          currentPage={currentPage} 
+          setCurrentPage={setCurrentPage} 
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
+          onLogout={signOut}
+        />
+        
+        <main className="flex-1 p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {renderPage()}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </AuthProvider>
+  )
+}
+
+export default App
