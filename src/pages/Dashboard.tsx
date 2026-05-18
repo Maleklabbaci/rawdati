@@ -8,37 +8,16 @@ export function Dashboard() {
   const type = establishment?.type || 'Crèche'
   const name = establishment?.name || 'Votre établissement'
 
-  // Dynamic labels based on type
   const getLabels = (type: string) => {
     switch (type) {
       case 'École de langue':
-        return {
-          students: 'Étudiants inscrits',
-          present: 'Présents aujourd\'hui',
-          staff: 'Formateurs',
-          welcome: 'Bienvenue dans votre école de langue'
-        }
+        return { students: 'Étudiants inscrits', present: 'Présents aujourd\'hui', staff: 'Formateurs', welcome: 'Bienvenue dans votre école de langue' }
       case 'École de cours':
-        return {
-          students: 'Élèves inscrits',
-          present: 'Présents aujourd\'hui',
-          staff: 'Professeurs',
-          welcome: 'Bienvenue dans votre école de cours'
-        }
+        return { students: 'Élèves inscrits', present: 'Présents aujourd\'hui', staff: 'Professeurs', welcome: 'Bienvenue dans votre école de cours' }
       case 'École de formation':
-        return {
-          students: 'Apprenants inscrits',
-          present: 'Présents aujourd\'hui',
-          staff: 'Formateurs',
-          welcome: 'Bienvenue dans votre centre de formation'
-        }
-      default: // Crèche
-        return {
-          students: 'Enfants inscrits',
-          present: 'Présents aujourd\'hui',
-          staff: 'Personnel',
-          welcome: 'Bienvenue dans votre crèche'
-        }
+        return { students: 'Apprenants inscrits', present: 'Présents aujourd\'hui', staff: 'Formateurs', welcome: 'Bienvenue dans votre centre de formation' }
+      default:
+        return { students: 'Enfants inscrits', present: 'Présents aujourd\'hui', staff: 'Personnel', welcome: 'Bienvenue dans votre crèche' }
     }
   }
 
@@ -60,27 +39,29 @@ export function Dashboard() {
   ]
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{labels.welcome} 👋</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">{name}</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-semibold tracking-tight">{labels.welcome}</h1>
+        <p className="text-lg text-gray-500 dark:text-gray-400 mt-1">{name}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon
           return (
-            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800">
+            <div key={index} className="bg-white dark:bg-gray-900 p-7 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-all">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
-                  <p className="text-3xl font-bold mt-2">{stat.value}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
+                  <p className="text-4xl font-semibold mt-3 tracking-tight">{stat.value}</p>
                 </div>
-                <div className={`p-3 rounded-xl bg-${stat.color}-100 dark:bg-${stat.color}-900/30`}>
+                <div className={`p-3.5 rounded-2xl bg-${stat.color}-100 dark:bg-${stat.color}-900/30`}>
                   <Icon className={`w-6 h-6 text-${stat.color}-600 dark:text-${stat.color}-400`} />
                 </div>
               </div>
-              <div className="mt-4 text-sm text-green-600 dark:text-green-400">
+              <div className="mt-5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 {stat.change} ce mois
               </div>
             </div>
@@ -88,15 +69,18 @@ export function Dashboard() {
         })}
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-8">
-        <h2 className="font-semibold text-lg mb-4">Présence cette semaine</h2>
-        <div className="h-80">
+      {/* Chart */}
+      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-semibold text-xl">Présence cette semaine</h3>
+        </div>
+        <div className="h-[340px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="present" fill="#14b8a6" />
+              <Bar dataKey="present" fill="#14b8a6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

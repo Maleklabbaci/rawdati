@@ -109,59 +109,61 @@ export function Children() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">{labels.title}</h1>
-          <p className="text-gray-500">{children.length} {labels.countLabel}</p>
+          <h1 className="text-4xl font-semibold tracking-tight">{labels.title}</h1>
+          <p className="text-lg text-gray-500 mt-1">{children.length} {labels.countLabel}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 transition-all shadow-lg"
+          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-2xl font-medium shadow-lg transition-all"
         >
           <Plus className="w-4 h-4" /> {labels.addButton}
         </button>
       </div>
 
-      <div className="mb-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-4 top-3.5 text-gray-400 w-4 h-4" />
+      {/* Search */}
+      <div className="mb-6 max-w-md">
+        <div className="relative">
+          <Search className="absolute left-5 top-4 text-gray-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            className="w-full pl-12 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-base"
           />
         </div>
       </div>
 
+      {/* Table */}
       <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <th className="text-left p-4 font-semibold">Nom</th>
-              <th className="text-left p-4 font-semibold">{labels.groupLabel}</th>
-              <th className="text-left p-4 font-semibold">{labels.parentLabel}</th>
-              <th className="text-left p-4 font-semibold">Téléphone</th>
-              <th className="text-left p-4 font-semibold">Statut</th>
+            <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+              <th className="text-left px-8 py-5 font-semibold text-sm">Nom</th>
+              <th className="text-left px-8 py-5 font-semibold text-sm">{labels.groupLabel}</th>
+              <th className="text-left px-8 py-5 font-semibold text-sm">{labels.parentLabel}</th>
+              <th className="text-left px-8 py-5 font-semibold text-sm">Téléphone</th>
+              <th className="text-left px-8 py-5 font-semibold text-sm">Statut</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="p-8 text-center">Chargement...</td></tr>
+              <tr><td colSpan={5} className="px-8 py-12 text-center text-gray-500">Chargement...</td></tr>
             ) : filteredChildren.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-gray-500">Aucun résultat trouvé</td></tr>
+              <tr><td colSpan={5} className="px-8 py-12 text-center text-gray-500">Aucun résultat trouvé</td></tr>
             ) : (
-              filteredChildren.map((child) => (
-                <tr key={child.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <td className="p-4 font-medium">{child.first_name} {child.last_name}</td>
-                  <td className="p-4">
-                    <span className="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-full text-sm font-medium">
+              filteredChildren.map((child, index) => (
+                <tr key={child.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <td className="px-8 py-5 font-medium">{child.first_name} {child.last_name}</td>
+                  <td className="px-8 py-5">
+                    <span className="inline-flex px-4 py-1.5 text-sm bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 rounded-2xl font-medium">
                       {child.group_name}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{child.parent_name}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{child.parent_phone}</td>
-                  <td className="p-4">
-                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded-full text-sm font-medium">
+                  <td className="px-8 py-5 text-gray-600 dark:text-gray-300">{child.parent_name}</td>
+                  <td className="px-8 py-5 text-gray-600 dark:text-gray-300 font-mono text-sm">{child.parent_phone}</td>
+                  <td className="px-8 py-5">
+                    <span className="inline-flex px-4 py-1.5 text-sm bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-2xl font-medium">
                       {child.status}
                     </span>
                   </td>
@@ -172,79 +174,38 @@ export function Children() {
         </table>
       </div>
 
-      {/* Modal Amélioré */}
+      {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={labels.addButton}>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Prénom</label>
-              <input 
-                type="text" 
-                value={formData.first_name} 
-                onChange={(e) => setFormData({...formData, first_name: e.target.value})} 
-                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
-                required 
-              />
+              <label className="block text-sm font-semibold mb-2">Prénom</label>
+              <input type="text" value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border text-base" required />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Nom</label>
-              <input 
-                type="text" 
-                value={formData.last_name} 
-                onChange={(e) => setFormData({...formData, last_name: e.target.value})} 
-                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
-                required 
-              />
+              <label className="block text-sm font-semibold mb-2">Nom</label>
+              <input type="text" value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border text-base" required />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">{labels.groupLabel}</label>
-            <input 
-              type="text" 
-              value={formData.group_name} 
-              onChange={(e) => setFormData({...formData, group_name: e.target.value})} 
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
-              required 
-            />
+            <label className="block text-sm font-semibold mb-2">{labels.groupLabel}</label>
+            <input type="text" value={formData.group_name} onChange={(e) => setFormData({...formData, group_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border text-base" required />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">{labels.parentLabel}</label>
-            <input 
-              type="text" 
-              value={formData.parent_name} 
-              onChange={(e) => setFormData({...formData, parent_name: e.target.value})} 
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
-              required 
-            />
+            <label className="block text-sm font-semibold mb-2">{labels.parentLabel}</label>
+            <input type="text" value={formData.parent_name} onChange={(e) => setFormData({...formData, parent_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border text-base" required />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Téléphone</label>
-            <input 
-              type="tel" 
-              value={formData.parent_phone} 
-              onChange={(e) => setFormData({...formData, parent_phone: e.target.value})} 
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-teal-500" 
-              required 
-            />
+            <label className="block text-sm font-semibold mb-2">Téléphone</label>
+            <input type="tel" value={formData.parent_phone} onChange={(e) => setFormData({...formData, parent_phone: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border text-base" required />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)} 
-              className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium"
-            >
-              Annuler
-            </button>
-            <button 
-              type="submit" 
-              className="flex-1 py-3 rounded-2xl bg-teal-600 text-white hover:bg-teal-700 font-semibold shadow-lg"
-            >
-              Ajouter
-            </button>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 rounded-2xl border font-medium">Annuler</button>
+            <button type="submit" className="flex-1 py-3.5 rounded-2xl bg-teal-600 text-white font-semibold">Ajouter</button>
           </div>
         </form>
       </Modal>
