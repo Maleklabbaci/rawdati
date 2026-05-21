@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { useEstablishment } from '../context/EstablishmentContext'
 
 export function Attendance() {

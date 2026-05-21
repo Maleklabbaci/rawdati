@@ -12,7 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentPage, setCurrentPage, darkMode, toggleDarkMode, onLogout }: SidebarProps) {
-  const { language, setLanguage, t } = useLanguage()
+  useLanguage()
   const { establishment } = useEstablishment()
   const [isOpen, setIsOpen] = useState(false)
 

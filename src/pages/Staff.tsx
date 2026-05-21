@@ -1,5 +1,5 @@
 import { useEstablishment } from '../context/EstablishmentContext'
-import { UserCheck, Plus, Phone, Mail } from 'lucide-react'
+import { Plus, Phone, Mail } from 'lucide-react'
 
 export function Staff() {
   const { establishment } = useEstablishment()

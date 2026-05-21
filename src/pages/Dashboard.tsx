@@ -1,5 +1,5 @@
 import { Users, Calendar, UserCheck, TrendingUp, ArrowUp, ArrowRight, Clock } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEstablishment } from '../context/EstablishmentContext'
 
 export function Dashboard() {
