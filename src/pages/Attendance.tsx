@@ -1,114 +1,71 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
+import { Calendar, Check, X } from 'lucide-react'
 import { useEstablishment } from '../context/EstablishmentContext'
 
-interface AttendanceRecord {
-  id: string
-  child_id: string
-  child_name: string
-  status: 'Present' | 'Absent' | 'Late'
-}
-
 export function Attendance() {
-  const { establishment, nurseryId } = useEstablishment()
+  const { establishment } = useEstablishment()
   const type = establishment?.type || 'Crèche'
+  const getTitle = (t: string) => t === 'Crèche' ? 'Présence des Enfants' : 'Suivi des Présences'
 
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
-  const [loading, setLoading] = useState(true)
+  const today = new Date().toLocaleDateString('fr-DZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  const getTitle = (type: string) => {
-    if (type === 'École de langue' || type === 'École de cours') return 'Suivi des Présences - Étudiants'
-    if (type === 'École de formation') return 'Suivi des Présences - Apprenants'
-    return 'Suivi des Présences'
-  }
+  const mockStudents = ['Amira Benali', 'Yacine Boudjema', 'Sarah Meziane', 'Omar Khalil', 'Lina Hamdi', 'Rami Ouali', 'Nadia Bensalem', 'Karim Hadj']
+  const [attendance, setAttendance] = useState<Record<string, boolean | null>>(Object.fromEntries(mockStudents.map(s => [s, null])))
 
-  const fetchAttendance = async () => {
-    if (!nurseryId) return
-    setLoading(true)
+  const toggle = (name: string, val: boolean) => setAttendance(prev => ({ ...prev, [name]: prev[name] === val ? null : val }))
 
-    const today = new Date().toISOString().split('T')[0]
-
-    const { data, error } = await supabase
-      .from('attendance')
-      .select(`id, child_id, status, children(first_name, last_name)`)
-      .eq('nursery_id', nurseryId)
-      .eq('date', today)
-
-    if (!error && data) {
-      const formatted = data.map((item: any) => ({
-        id: item.id,
-        child_id: item.child_id,
-        child_name: `${item.children.first_name} ${item.children.last_name}`,
-        status: item.status
-      }))
-      setAttendance(formatted)
-    }
-    setLoading(false)
-  }
-
-  const updateStatus = async (childId: string, newStatus: 'Present' | 'Absent' | 'Late') => {
-    if (!nurseryId) return
-    const today = new Date().toISOString().split('T')[0]
-
-    const { error } = await supabase.from('attendance').upsert({
-      nursery_id: nurseryId,
-      child_id: childId,
-      date: today,
-      status: newStatus
-    })
-
-    if (!error) {
-      setAttendance(prev => prev.map(item =>
-        item.child_id === childId ? { ...item, status: newStatus } : item
-      ))
-    }
-  }
-
-  useEffect(() => {
-    fetchAttendance()
-  }, [nurseryId])
+  const present = Object.values(attendance).filter(v => v === true).length
+  const absent = Object.values(attendance).filter(v => v === false).length
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{getTitle(type)}</h1>
-          <p className="text-gray-500 mt-1">{new Date().toLocaleDateString('fr-FR')}</p>
-        </div>
+    <div style={{ padding: '28px', maxWidth: '900px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'Syne, sans-serif', fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{getTitle(type)}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: '4px 0 0', textTransform: 'capitalize' }}>{today}</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center">Chargement...</div>
-        ) : attendance.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">Aucune donnée aujourd'hui</div>
-        ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {attendance.map(record => (
-              <div key={record.id} className="flex items-center justify-between p-5">
-                <span className="font-medium">{record.child_name}</span>
-                <div className="flex gap-2">
-                  {(['Present', 'Absent', 'Late'] as const).map(status => (
-                    <button
-                      key={status}
-                      onClick={() => updateStatus(record.child_id, status)}
-                      className={`px-5 py-1.5 text-sm rounded-2xl transition-all ${
-                        record.status === status
-                          ? status === 'Present' ? 'bg-green-600 text-white'
-                            : status === 'Absent' ? 'bg-red-600 text-white'
-                            : 'bg-orange-600 text-white'
-                          : 'border border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-                      {status === 'Present' ? 'Présent' : status === 'Absent' ? 'Absent' : 'Retard'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+      {/* Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        {[
+          { label: 'Total', value: mockStudents.length, color: '#4F46E5', bg: 'rgba(79,70,229,0.08)' },
+          { label: 'Présents', value: present, color: '#10B981', bg: 'rgba(16,185,129,0.08)' },
+          { label: 'Absents', value: absent, color: '#F59E0B', bg: 'rgba(245,158,11,0.08)' },
+        ].map((s, i) => (
+          <div key={i} style={{ background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border)', padding: '18px', textAlign: 'center' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: s.color, fontFamily: 'Syne, sans-serif' }}>{s.value}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '2px' }}>{s.label}</div>
           </div>
-        )}
+        ))}
       </div>
+
+      {/* Attendance list */}
+      <div style={{ background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+        {mockStudents.map((name, i) => (
+          <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: i < mockStudents.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `hsl(${i * 37 + 200}, 60%, 92%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: `hsl(${i * 37 + 200}, 50%, 35%)` }}>
+                {name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => toggle(name, true)} style={{ width: '38px', height: '38px', borderRadius: '10px', border: '1.5px solid', borderColor: attendance[name] === true ? '#10B981' : 'var(--border)', background: attendance[name] === true ? 'rgba(16,185,129,0.12)' : 'transparent', color: attendance[name] === true ? '#10B981' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                <Check style={{ width: '16px', height: '16px' }} />
+              </button>
+              <button onClick={() => toggle(name, false)} style={{ width: '38px', height: '38px', borderRadius: '10px', border: '1.5px solid', borderColor: attendance[name] === false ? '#F59E0B' : 'var(--border)', background: attendance[name] === false ? 'rgba(245,158,11,0.12)' : 'transparent', color: attendance[name] === false ? '#F59E0B' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                <X style={{ width: '16px', height: '16px' }} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button style={{ marginTop: '20px', width: '100%', padding: '14px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '15px', boxShadow: '0 4px 14px rgba(79,70,229,0.35)', cursor: 'pointer', fontFamily: 'Syne, sans-serif' }}>
+        Enregistrer la présence
+      </button>
     </div>
   )
 }

@@ -1,148 +1,149 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Users } from 'lucide-react'
 import { Modal } from '../components/Modal'
 import { supabase } from '../lib/supabase'
 import { useEstablishment } from '../context/EstablishmentContext'
 
 interface Child {
-  id: string
-  first_name: string
-  last_name: string
-  group_name: string
-  parent_name: string
-  parent_phone: string
-  status: 'Active' | 'Inactive'
+  id: string; first_name: string; last_name: string
+  group_name: string; parent_name: string; parent_phone: string; status: 'Active' | 'Inactive'
 }
+
+const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: '12px', border: '1.5px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '14px' }
+const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }
 
 export function Children() {
   const { establishment, nurseryId } = useEstablishment()
   const type = establishment?.type || 'Crèche'
-
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [children, setChildren] = useState<Child[]>([])
   const [loading, setLoading] = useState(true)
-
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    group_name: 'Groupe A',
-    parent_name: '',
-    parent_phone: '',
-  })
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', group_name: 'Groupe A', parent_name: '', parent_phone: '' })
 
   const getLabels = (type: string) => {
-    if (type === 'École de langue' || type === 'École de cours') {
-      return { title: 'Gestion des Étudiants', addButton: 'Ajouter un étudiant', parentLabel: 'Contact / Parent', groupLabel: 'Niveau / Groupe', countLabel: 'étudiants inscrits' }
-    } else if (type === 'École de formation') {
-      return { title: 'Gestion des Apprenants', addButton: 'Ajouter un apprenant', parentLabel: 'Entreprise / Contact', groupLabel: 'Module / Groupe', countLabel: 'apprenants inscrits' }
-    } else {
-      return { title: 'Gestion des Enfants', addButton: 'Ajouter un enfant', parentLabel: 'Nom du parent', groupLabel: 'Groupe', countLabel: 'enfants inscrits' }
-    }
+    if (type === 'École de langue' || type === 'École de cours') return { title: 'Étudiants', addButton: 'Ajouter un étudiant', parentLabel: 'Contact / Parent', groupLabel: 'Niveau / Groupe', countLabel: 'étudiants inscrits' }
+    if (type === 'École de formation') return { title: 'Apprenants', addButton: 'Ajouter un apprenant', parentLabel: 'Entreprise / Contact', groupLabel: 'Module / Groupe', countLabel: 'apprenants inscrits' }
+    return { title: 'Enfants', addButton: 'Ajouter un enfant', parentLabel: 'Nom du parent', groupLabel: 'Groupe', countLabel: 'enfants inscrits' }
   }
-
   const labels = getLabels(type)
 
   const fetchChildren = async () => {
     if (!nurseryId) return
-    
     setLoading(true)
-    const { data, error } = await supabase
-      .from('children')
-      .select('*')
-      .eq('nursery_id', nurseryId)
-      .order('created_at', { ascending: false })
-
-    if (error) console.error(error)
-    else setChildren(data || [])
+    const { data, error } = await supabase.from('children').select('*').eq('nursery_id', nurseryId).order('created_at', { ascending: false })
+    if (!error) setChildren(data || [])
     setLoading(false)
   }
 
-  useEffect(() => {
-    fetchChildren()
-  }, [nurseryId])
+  useEffect(() => { fetchChildren() }, [nurseryId])
 
-  const filteredChildren = children.filter(child =>
-    `${child.first_name} ${child.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredChildren = children.filter(c => `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!nurseryId) return
-
-    const { error } = await supabase.from('children').insert([{
-      ...formData,
-      nursery_id: nurseryId,
-      status: 'Active'
-    }])
-
-    if (error) {
-      alert('Erreur: ' + error.message)
-    } else {
-      setIsModalOpen(false)
-      fetchChildren()
-      setFormData({ first_name: '', last_name: '', group_name: 'Groupe A', parent_name: '', parent_phone: '' })
-    }
+    const { error } = await supabase.from('children').insert([{ ...formData, nursery_id: nurseryId, status: 'Active' }])
+    if (!error) { setIsModalOpen(false); fetchChildren(); setFormData({ first_name: '', last_name: '', group_name: 'Groupe A', parent_name: '', parent_phone: '' }) }
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div style={{ padding: '28px', maxWidth: '1400px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight">{labels.title}</h1>
-          <p className="text-lg text-gray-500 mt-1">{children.length} {labels.countLabel}</p>
+          <h1 style={{ fontFamily: 'Syne, sans-serif', fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{labels.title}</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: '4px 0 0' }}>{children.length} {labels.countLabel}</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-2xl font-medium shadow-lg">
-          <Plus className="w-4 h-4" /> {labels.addButton}
+        <button onClick={() => setIsModalOpen(true)} style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+          color: 'white', border: 'none', borderRadius: '14px',
+          padding: '11px 20px', fontWeight: 700, fontSize: '14px',
+          boxShadow: '0 4px 14px rgba(79,70,229,0.35)', cursor: 'pointer',
+          fontFamily: 'Syne, sans-serif',
+        }}>
+          <Plus style={{ width: '16px', height: '16px' }} /> {labels.addButton}
         </button>
       </div>
 
-      <div className="mb-6 max-w-md">
-        <div className="relative">
-          <Search className="absolute left-5 top-4 text-gray-400 w-5 h-5" />
-          <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 py-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900" />
-        </div>
+      {/* Search */}
+      <div style={{ position: 'relative', maxWidth: '360px', marginBottom: '20px' }}>
+        <Search style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '15px', height: '15px', color: 'var(--text-muted)' }} />
+        <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ ...inputStyle, paddingLeft: '40px' }} />
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
-        <table className="w-full">
+      {/* Table */}
+      <div style={{ background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-              <th className="text-left px-8 py-5 font-semibold text-sm">Nom</th>
-              <th className="text-left px-8 py-5 font-semibold text-sm">{labels.groupLabel}</th>
-              <th className="text-left px-8 py-5 font-semibold text-sm">{labels.parentLabel}</th>
-              <th className="text-left px-8 py-5 font-semibold text-sm">Téléphone</th>
-              <th className="text-left px-8 py-5 font-semibold text-sm">Statut</th>
+            <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+              {['Nom', labels.groupLabel, labels.parentLabel, 'Téléphone', 'Statut'].map(h => (
+                <th key={h} style={{ textAlign: 'left', padding: '14px 20px', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={5} className="px-8 py-12 text-center">Chargement...</td></tr> :
-             filteredChildren.length === 0 ? <tr><td colSpan={5} className="px-8 py-12 text-center text-gray-500">Aucun résultat</td></tr> :
-             filteredChildren.map(child => (
-              <tr key={child.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                <td className="px-8 py-5 font-medium">{child.first_name} {child.last_name}</td>
-                <td className="px-8 py-5"><span className="px-4 py-1.5 text-sm bg-teal-100 dark:bg-teal-900/40 text-teal-700 rounded-2xl">{child.group_name}</span></td>
-                <td className="px-8 py-5 text-gray-600 dark:text-gray-300">{child.parent_name}</td>
-                <td className="px-8 py-5 text-gray-600 dark:text-gray-300 font-mono text-sm">{child.parent_phone}</td>
-                <td className="px-8 py-5"><span className="px-4 py-1.5 text-sm bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 rounded-2xl">{child.status}</span></td>
+            {loading ? (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-secondary)' }}>Chargement...</td></tr>
+            ) : filteredChildren.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '60px 20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Users style={{ width: '24px', height: '24px', color: 'var(--text-muted)' }} />
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', margin: 0 }}>Aucun résultat trouvé</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredChildren.map((child, i) => (
+              <tr key={child.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.15s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+              >
+                <td style={{ padding: '14px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+                      background: `hsl(${(i * 47) % 360}, 65%, 92%)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '12px', fontWeight: 700, color: `hsl(${(i * 47) % 360}, 55%, 35%)`,
+                    }}>
+                      {child.first_name[0]}{child.last_name[0]}
+                    </div>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{child.first_name} {child.last_name}</span>
+                  </div>
+                </td>
+                <td style={{ padding: '14px 20px' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: 'rgba(79,70,229,0.10)', color: '#4F46E5' }}>{child.group_name}</span>
+                </td>
+                <td style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--text-secondary)' }}>{child.parent_name}</td>
+                <td style={{ padding: '14px 20px', fontSize: '13px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{child.parent_phone}</td>
+                <td style={{ padding: '14px 20px' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: child.status === 'Active' ? 'rgba(16,185,129,0.10)' : 'rgba(107,114,128,0.10)', color: child.status === 'Active' ? '#10B981' : '#6B7280' }}>
+                    {child.status === 'Active' ? 'Actif' : 'Inactif'}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
+      {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={labels.addButton}>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-semibold mb-2">Prénom</label><input type="text" value={formData.first_name} onChange={(e) => setFormData({...formData, first_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border" required /></div>
-            <div><label className="block text-sm font-semibold mb-2">Nom</label><input type="text" value={formData.last_name} onChange={(e) => setFormData({...formData, last_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border" required /></div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div><label style={labelStyle}>Prénom</label><input type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} style={inputStyle} required /></div>
+            <div><label style={labelStyle}>Nom</label><input type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} style={inputStyle} required /></div>
           </div>
-          <div><label className="block text-sm font-semibold mb-2">{labels.groupLabel}</label><input type="text" value={formData.group_name} onChange={(e) => setFormData({...formData, group_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border" required /></div>
-          <div><label className="block text-sm font-semibold mb-2">{labels.parentLabel}</label><input type="text" value={formData.parent_name} onChange={(e) => setFormData({...formData, parent_name: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border" required /></div>
-          <div><label className="block text-sm font-semibold mb-2">Téléphone</label><input type="tel" value={formData.parent_phone} onChange={(e) => setFormData({...formData, parent_phone: e.target.value})} className="w-full px-5 py-3.5 rounded-2xl border" required /></div>
-          <div className="flex gap-3 pt-4">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 rounded-2xl border font-medium">Annuler</button>
-            <button type="submit" className="flex-1 py-3.5 rounded-2xl bg-teal-600 text-white font-semibold">Ajouter</button>
+          <div><label style={labelStyle}>{labels.groupLabel}</label><input type="text" value={formData.group_name} onChange={e => setFormData({...formData, group_name: e.target.value})} style={inputStyle} required /></div>
+          <div><label style={labelStyle}>{labels.parentLabel}</label><input type="text" value={formData.parent_name} onChange={e => setFormData({...formData, parent_name: e.target.value})} style={inputStyle} required /></div>
+          <div><label style={labelStyle}>Téléphone</label><input type="tel" value={formData.parent_phone} onChange={e => setFormData({...formData, parent_phone: e.target.value})} style={inputStyle} required /></div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+            <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px' }}>Annuler</button>
+            <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', fontWeight: 700, fontSize: '14px', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}>Ajouter</button>
           </div>
         </form>
       </Modal>

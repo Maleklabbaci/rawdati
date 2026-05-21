@@ -1,8 +1,5 @@
 import { useState } from 'react'
-import { 
-  LayoutDashboard, Users, UserCheck, Calendar, CreditCard, 
-  BarChart3, LogOut, Moon, Sun, Menu, X 
-} from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, Calendar, CreditCard, BarChart3, LogOut, Moon, Sun, Menu, X, GraduationCap } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useEstablishment } from '../context/EstablishmentContext'
 
@@ -34,12 +31,12 @@ export function Sidebar({ currentPage, setCurrentPage, darkMode, toggleDarkMode,
   const menuLabels = getMenuLabels(type)
 
   const menuItems = [
-    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { id: 'children', label: menuLabels.students, icon: Users },
     { id: 'staff', label: menuLabels.staff, icon: UserCheck },
     { id: 'attendance', label: menuLabels.attendance, icon: Calendar },
-    { id: 'payments', label: t('payments'), icon: CreditCard },
-    { id: 'reports', label: t('reports'), icon: BarChart3 },
+    { id: 'payments', label: 'Paiements', icon: CreditCard },
+    { id: 'reports', label: 'Rapports', icon: BarChart3 },
   ]
 
   const handleNavigation = (id: string) => {
@@ -47,85 +44,132 @@ export function Sidebar({ currentPage, setCurrentPage, darkMode, toggleDarkMode,
     setIsOpen(false)
   }
 
+  const SidebarContent = () => (
+    <div style={{
+      width: '76px',
+      background: 'var(--surface)',
+      borderRight: '1px solid var(--border)',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '20px 0',
+      gap: '4px',
+      position: 'sticky',
+      top: 0,
+    }}>
+      {/* Logo */}
+      <div style={{
+        width: '44px', height: '44px',
+        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        borderRadius: '14px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: '24px',
+        boxShadow: '0 4px 14px rgba(79,70,229,0.35)',
+        flexShrink: 0,
+      }}>
+        <GraduationCap style={{ color: 'white', width: '22px', height: '22px' }} />
+      </div>
+
+      {/* Menu Items */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', padding: '0 10px' }}>
+        {menuItems.map((item) => {
+          const Icon = item.icon
+          const isActive = currentPage === item.id
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavigation(item.id)}
+              title={item.label}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: 'none',
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(79,70,229,0.15) 0%, rgba(124,58,237,0.15) 100%)'
+                  : 'transparent',
+                color: isActive ? '#4F46E5' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+              }}
+              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
+              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              {isActive && (
+                <div style={{
+                  position: 'absolute', left: '-10px', top: '50%', transform: 'translateY(-50%)',
+                  width: '3px', height: '20px',
+                  background: 'linear-gradient(180deg, #4F46E5, #7C3AED)',
+                  borderRadius: '999px',
+                }} />
+              )}
+              <Icon style={{ width: '20px', height: '20px' }} />
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Bottom */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%', padding: '0 10px' }}>
+        <button onClick={toggleDarkMode} title={darkMode ? 'Mode clair' : 'Mode sombre'} style={{
+          width: '100%', padding: '12px', borderRadius: '14px',
+          border: 'none', background: 'transparent',
+          color: 'var(--text-secondary)', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+        >
+          {darkMode ? <Sun style={{ width: '18px', height: '18px' }} /> : <Moon style={{ width: '18px', height: '18px' }} />}
+        </button>
+
+        <button onClick={onLogout} title="Déconnexion" style={{
+          width: '100%', padding: '12px', borderRadius: '14px',
+          border: 'none', background: 'transparent',
+          color: '#EF4444', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+        >
+          <LogOut style={{ width: '18px', height: '18px' }} />
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
+        className="lg:hidden"
+        style={{
+          position: 'fixed', top: '16px', left: '16px', zIndex: 50,
+          padding: '10px', background: 'var(--surface)',
+          borderRadius: '12px', boxShadow: 'var(--shadow-md)',
+          border: '1px solid var(--border)', color: 'var(--text-primary)',
+        }}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? <X style={{ width: '20px', height: '20px' }} /> : <Menu style={{ width: '20px', height: '20px' }} />}
       </button>
 
-      {/* Overlay */}
       {isOpen && (
-        <div 
-          onClick={() => setIsOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-        />
+        <div onClick={() => setIsOpen(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 40,
+        }} className="lg:hidden" />
       )}
 
-      {/* Sidebar */}
-      <div className={`
-        w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col
-        fixed lg:static z-50 transition-transform duration-300
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Logo */}
-        <div className="p-8 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-gradient-to-br from-teal-600 to-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl font-bold">R</span>
-            </div>
-            <div>
-              <h1 className="font-semibold text-2xl tracking-tight">RAWDATI</h1>
-              <p className="text-[10px] text-gray-500 -mt-1">PLATEFORME ÉDUCATIVE</p>
-            </div>
-          </div>
-        </div>
+      <div className={`hidden lg:flex`}>
+        <SidebarContent />
+      </div>
 
-        {/* Menu */}
-        <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <div className="space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              const isActive = currentPage === item.id
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.id)}
-                  className={`w-full flex items-center gap-3.5 px-5 py-3.5 rounded-2xl text-[15px] font-medium transition-all ${
-                    isActive 
-                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 shadow-sm' 
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-300'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-1">
-          <div className="flex gap-2 px-2 pb-3">
-            <button onClick={() => setLanguage('fr')} className={`flex-1 py-2 text-xs font-medium rounded-xl ${language === 'fr' ? 'bg-teal-600 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>FR</button>
-            <button onClick={() => setLanguage('ar')} className={`flex-1 py-2 text-xs font-medium rounded-xl ${language === 'ar' ? 'bg-teal-600 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>عربي</button>
-          </div>
-
-          <button onClick={toggleDarkMode} className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            <span className="text-sm">{darkMode ? 'Mode clair' : 'Mode sombre'}</span>
-          </button>
-          
-          <button onClick={onLogout} className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 text-sm">
-            <LogOut className="w-5 h-5" />
-            Déconnexion
-          </button>
-        </div>
+      <div className={`lg:hidden fixed z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <SidebarContent />
       </div>
     </>
   )
